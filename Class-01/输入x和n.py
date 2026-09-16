@@ -13,8 +13,6 @@ def series_sum():
             
         print(f"sum = {total_sum}")
         
-        # （可选）打印展开式方便核对
-        # 例如生成 "2+22+222" 这种字符串展示
         terms_str = []
         temp_term = 0
         for i in range(n):
@@ -25,5 +23,4 @@ def series_sum():
     except ValueError:
         print("请输入有效的整数！")
 
-# 运行
 series_sum()
