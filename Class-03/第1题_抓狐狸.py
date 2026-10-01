@@ -1,6 +1,5 @@
 import random
 
-
 fox_hole = random.randint(0, 4)
 days = 0
 
