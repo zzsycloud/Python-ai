@@ -23,7 +23,7 @@ criterion = nn.BCEWithLogitsLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.5)
 
 # ========== 3.3 训练模型 ==========
-epochs = 100
+epochs = 200
 for epoch in range(epochs):
     logits = model(X)
     loss = criterion(logits, y)
@@ -32,14 +32,34 @@ for epoch in range(epochs):
     loss.backward()
     optimizer.step()
 
-    if epoch % 10 == 0:
-        print(f'Epoch {epoch}, Loss: {loss.item():.6f}')
+    if epoch % 20 == 0:
+        print(f'Epoch {epoch:3d}, Loss: {loss.item():.6f}')
 
-# 训练结束后：Sigmoid 得到类别1概率，以0.5为阈值生成预测标签，并计算准确率
 with torch.no_grad():
-    logits = model(X)
-    probs = torch.sigmoid(logits)
-    preds = (probs > 0.5).float()
-    accuracy = (preds == y).float().mean()
+    prob = torch.sigmoid(model(X))
+    pred = (prob >= 0.5).float()
+    acc = (pred == y).float().mean()
 
-    print(f'Final Accuracy: {accuracy.item():.4f}')
+print('Trained Weight:', model.weight.detach().numpy())
+print('Trained Bias:', model.bias.detach().numpy())
+print(f'Training Accuracy: {acc.item() * 100:.2f}%')
+
+# ========== 3.4 模型评估：概率等高图 + 0.5 决策边界 ==========
+x_min, x_max = -0.1, 1.1
+y_min, y_max = -0.1, 1.1
+xx, yy = np.meshgrid(
+    np.linspace(x_min, x_max, 300),
+    np.linspace(y_min, y_max, 300)
+)
+grid = torch.tensor(np.c_[xx.ravel(), yy.ravel()], dtype=torch.float32)
+
+with torch.no_grad():
+    Z = torch.sigmoid(model(grid)).numpy().reshape(xx.shape)
+
+plt.contourf(xx, yy, Z, levels=np.linspace(0, 1, 11), cmap='coolwarm', alpha=0.55)
+plt.contour(xx, yy, Z, levels=[0.5], colors='black')
+plt.scatter(X_np[:, 0], X_np[:, 1], c=y_np.ravel(), cmap='coolwarm')
+plt.xlabel('X1')
+plt.ylabel('X2')
+plt.title('Logistic Regression Decision Boundary')
+plt.show()
